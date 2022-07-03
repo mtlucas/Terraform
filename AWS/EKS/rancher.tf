@@ -78,10 +78,10 @@ resource "kubernetes_ingress_v1" "rancher" {
       "meta.helm.sh/release-namespace"             = kubernetes_namespace.rancher[0].metadata[0].name
     }
     labels = {
-        "app"                                      = "rancher"
-        "service"                                  = "rancher"
-        "dependent-release"                        = helm_release.aws-load-balancer-controller.name
-        "app.kubernetes.io/managed-by"             = "Helm"
+      "app"                          = "rancher"
+      "service"                      = "rancher"
+      "dependent-release"            = helm_release.aws-load-balancer-controller.name
+      "app.kubernetes.io/managed-by" = "Helm"
     }
   }
 

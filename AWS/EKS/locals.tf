@@ -22,7 +22,7 @@ locals {
     }
   }
 
-  # Rancher namespaces
+  # Rancher namespaces for Fargate profile
   rancher_namespaces = [
     "${var.rancher_primary_namespace}",
     "cattle-fleet-system",

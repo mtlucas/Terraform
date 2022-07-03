@@ -9,6 +9,9 @@ resource "kubernetes_config_map" "kube-config" {
   metadata {
     name      = "kube-config"
     namespace = var.coredns_namespace
+    labels = {
+      "app.kubernetes.io/managed-by" = "terraform"
+    }
   }
 
   data = {
@@ -25,6 +28,9 @@ resource "kubernetes_service_account" "core_dns_fixer" {
   metadata {
     name      = "core-dns-fixer"
     namespace = var.coredns_namespace
+    labels = {
+      "app.kubernetes.io/managed-by" = "terraform"
+    }
   }
   depends_on = [
     local_file.kubeconfig,
@@ -37,6 +43,9 @@ resource "kubernetes_role" "core_dns_fixer" {
   metadata {
     name      = "core-dns-fixer"
     namespace = var.coredns_namespace
+    labels = {
+      "app.kubernetes.io/managed-by" = "terraform"
+    }
   }
 
   rule {

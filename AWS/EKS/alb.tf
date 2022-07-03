@@ -7,6 +7,9 @@ resource "kubernetes_namespace" "alb" {
     annotations = {
       name = var.alb_namespace
     }
+    labels      = {
+      "app.kubernetes.io/managed-by" = "terraform"
+    }
     name = var.alb_namespace
   }
   depends_on = [

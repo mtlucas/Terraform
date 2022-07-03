@@ -7,7 +7,8 @@ resource "kubernetes_deployment" "whoami" {
     name      = "whoami-deployment"
     namespace = "default"
     labels    = {
-      app = "whoami"
+      app                            = "whoami"
+      "app.kubernetes.io/managed-by" = "terraform"
     }
   }
 
@@ -23,7 +24,8 @@ resource "kubernetes_deployment" "whoami" {
     template {
       metadata {
         labels = {
-          app = "whoami"
+          app                            = "whoami"
+          "app.kubernetes.io/managed-by" = "terraform"
         }
       }
 
@@ -58,6 +60,10 @@ resource "kubernetes_service" "whoami" {
   metadata {
     name      = "whoami"
     namespace = "default"
+    labels    = {
+      app                            = "whoami"
+      "app.kubernetes.io/managed-by" = "terraform"
+    }
   }
   spec {
     selector = {
@@ -97,9 +103,10 @@ resource "kubernetes_ingress_v1" "whoami" {
       "alb.ingress.kubernetes.io/subnets"     = join(", ", [for s in data.aws_subnet.private_subnets : s.id])
     }
     labels = {
-        "app"               = "whoami"
-        "service"           = kubernetes_service.whoami[0].metadata[0].name
-        "dependent-release" = helm_release.aws-load-balancer-controller.name
+        app                            = "whoami"
+        service                        = kubernetes_service.whoami[0].metadata[0].name
+        dependent-release              = helm_release.aws-load-balancer-controller.name
+        "app.kubernetes.io/managed-by" = "terraform"
     }
   }
 
