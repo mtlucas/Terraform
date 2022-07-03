@@ -47,7 +47,7 @@ resource "helm_release" "aws-load-balancer-controller" {
 }
 
 resource "time_sleep" "wait-for-alb" {
-  create_duration = "60s"
+  create_duration = "30s"
 
   depends_on = [
     helm_release.aws-load-balancer-controller,

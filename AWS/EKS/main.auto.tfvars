@@ -1,4 +1,4 @@
-# Variables values - auto imported
+# Essential variable values - auto imported
 
 name                       = "eks-1"                       # Cluster name
 kubernetes_version         = "1.22"                        # version 1.22 or greater is required

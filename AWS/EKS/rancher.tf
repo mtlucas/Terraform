@@ -130,7 +130,7 @@ resource "helm_release" "rancher" {
   namespace        = var.rancher_primary_namespace
   version          = var.rancher_version
   atomic           = true
-  timeout          = 1800
+  timeout          = 3600
   create_namespace = false
 
   set {
