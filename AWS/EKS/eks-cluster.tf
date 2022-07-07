@@ -100,7 +100,7 @@ resource "aws_eks_fargate_profile" "kube-system" {
   # Patch coredns with Fargate fix and restart pods
   provisioner "local-exec" {
     environment = {
-      KUBECONFIG = "${data.external.env-vars.result["USERPROFILE"]}\\.kube\\eks-1-config"
+      KUBECONFIG = "${data.external.env-vars.result["USERPROFILE"]}\\.kube\\${var.name}-config"
     }
     command = <<-EOT
       & kubectl patch deployment coredns -n kube-system --type json -p="[{'op': 'remove', 'path': '/spec/template/metadata/annotations/eks.amazonaws.com~1compute-type'}]"
