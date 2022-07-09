@@ -34,7 +34,7 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   resource_group_name     = data.azurerm_resource_group.primary.name
   dns_prefix              = var.cluster_name
   private_cluster_enabled = true
-  node_resource_group     = "${data.azurerm_resource_group.primary.name}_${var.cluster_name}"
+  node_resource_group     = "${data.azurerm_resource_group.primary.name}-${var.cluster_name}-nodepool"
 
   # Can only restrict IP ranges on Public cluster
   #api_server_authorized_ip_ranges = ["10.10.0.0/16", "192.168.0.0/24"]

@@ -42,6 +42,7 @@ resource "helm_release" "kv_csi" {
   depends_on = [
     azurerm_kubernetes_cluster.k8s,
     azurerm_user_assigned_identity.aks_identity,
+    azurerm_role_assignment.aks-aci-vnet-assignment,
     azurerm_role_assignment.private-dns-contributor,
     azurerm_role_assignment.network-contributor,
     azurerm_role_assignment.acr-image-puller,
@@ -53,11 +54,12 @@ resource "helm_release" "kv_csi" {
 data "template_file" "secret-provider-class" {
   template = file("${path.module}/templates/SecretProviderClass.tpl")
   vars = {
-    nginx_ingress_secret_name = var.nginx_ingress_secret_name
-    nginx_ingress_namespace   = var.nginx_ingress_namespace
-    cert_name                 = var.cert_name
-    keyvault_name             = var.keyvault_name
-    client_id                 = azurerm_user_assigned_identity.aks_identity.client_id
+    nginx_ingress_secret_name  = var.nginx_ingress_secret_name
+    nginx_ingress_secret_class = var.nginx_ingress_secret_class
+    nginx_ingress_namespace    = var.nginx_ingress_namespace
+    cert_name                  = var.cert_name
+    keyvault_name              = var.keyvault_name
+    client_id                  = azurerm_user_assigned_identity.aks_identity.client_id
   }
 }
 

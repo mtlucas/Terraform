@@ -30,7 +30,26 @@ data "azurerm_key_vault" "primary" {
   resource_group_name  = data.azurerm_resource_group.primary.name
 }
 
-data "azurerm_user_assigned_identity" "aks-aci_identity" {
-  name = "aciconnectorlinux-${azurerm_kubernetes_cluster.k8s.name}"
+data "azurerm_key_vault_certificate_data" "wildcard_cert" {
+  name                 = var.cert_name
+  key_vault_id         = data.azurerm_key_vault.primary.id
+}
+
+data "azurerm_key_vault_secret" "ca_cert" {
+  name                 = var.ca_cert_name
+  key_vault_id         = data.azurerm_key_vault.primary.id
+}
+
+data "azurerm_user_assigned_identity" "aks_aci_identity" {
+  name                 = "aciconnectorlinux-${azurerm_kubernetes_cluster.k8s.name}"
+  resource_group_name  = azurerm_kubernetes_cluster.k8s.node_resource_group
+}
+
+data "azurerm_lb" "aks_nodepool_lb" {
+  name                = "kubernetes-internal"
   resource_group_name = azurerm_kubernetes_cluster.k8s.node_resource_group
+
+  depends_on = [
+    helm_release.ingress
+  ]
 }

@@ -1,7 +1,7 @@
 # Assign Identities and Roles for AKS cluster
 
 resource "azurerm_user_assigned_identity" "aks_identity" {
-  name                = "${var.cluster_name}-identity"
+  name                = "${var.cluster_name}-keyvault"
   resource_group_name = azurerm_kubernetes_cluster.k8s.node_resource_group
   location            = data.azurerm_resource_group.primary.location
 
@@ -40,7 +40,11 @@ resource "azurerm_role_assignment" "network-contributor" {
 resource "azurerm_role_assignment" "aks-aci-vnet-assignment" {
   role_definition_name = "Contributor"
   scope                = data.azurerm_virtual_network.primary.id
-  principal_id         = data.azurerm_user_assigned_identity.aks-aci_identity.principal_id
+  principal_id         = data.azurerm_user_assigned_identity.aks_aci_identity.principal_id
+
+  depends_on = [
+    azurerm_kubernetes_cluster.k8s,
+  ]
 }
 
 # Needed for Azure Container Registry
@@ -55,7 +59,6 @@ resource "azurerm_key_vault_access_policy" "aks_cluster" {
   key_vault_id = data.azurerm_key_vault.primary.id
   tenant_id    = data.azurerm_subscription.current.tenant_id
   object_id    = azurerm_user_assigned_identity.aks_identity.principal_id
-  #object_id    = azurerm_kubernetes_cluster.k8s.identity[0].principal_id     # SystemAssigned ID not working
 
   key_permissions = [
     "Get",
@@ -69,4 +72,3 @@ resource "azurerm_key_vault_access_policy" "aks_cluster" {
     "Get",
   ]
 }
-

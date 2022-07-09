@@ -1,4 +1,4 @@
-# Install Nginx ingress using helm, will create Basic Load balancer in Azure (free)
+# Install Nginx ingress using helm, will create basic Load balancer in Azure (free)
 
 resource "kubernetes_namespace" "ingress-basic" {
   metadata {
@@ -10,6 +10,7 @@ resource "kubernetes_namespace" "ingress-basic" {
   depends_on = [
     azurerm_kubernetes_cluster.k8s,
     azurerm_user_assigned_identity.aks_identity,
+    azurerm_role_assignment.aks-aci-vnet-assignment,
     azurerm_role_assignment.private-dns-contributor,
     azurerm_role_assignment.network-contributor,
     azurerm_role_assignment.acr-image-puller,
@@ -33,17 +34,28 @@ resource "helm_release" "ingress" {
     name  = "controller.replicaCount"
     value = 1
   }
-  set {
-    name  = "controller.service.loadBalancerIP"
-    value = var.nginx_ingress_lb_ip
-  }
+  # Attempting to see if Dynamic IP address works for load balancer - Yes!
+#   set {
+#     name  = "controller.service.loadBalancerIP"
+#     value = var.nginx_ingress_lb_ip
+#   }
   set {
     name  = "controller.ingressClassResource.default"
     value = true
   }
+  # This sync feature does not appear to be working properly, even when enabled
   set {
     name  = "syncSecret.enabled"
-    value = true
+    value = false
+  }
+  # So I added "k8s-cert-secret.tf" code to import cert/key directly from Azure KeyVault and put into this secret
+  set {
+    name  = "controller.defaultTLS.secret"
+    value = "${var.nginx_ingress_namespace}/${var.nginx_ingress_secret_name}"
+  }
+  set {
+    name  = "controller.extraArgs.default-ssl-certificate"
+    value = "${var.nginx_ingress_namespace}/${var.nginx_ingress_secret_name}"
   }
   set {
     name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/azure-load-balancer-health-probe-request-path"
@@ -79,7 +91,7 @@ resource "helm_release" "ingress" {
   }
   set {
     name  = "controller.extraVolumes[0].csi.volumeAttributes.secretProviderClass"
-    value = "azure-ingress-tls"
+    value = var.nginx_ingress_secret_class
   }
   set {
     name  = "controller.extraVolumeMounts[0].name"
@@ -95,6 +107,7 @@ resource "helm_release" "ingress" {
   }
 
   depends_on = [
+    kubernetes_secret_v1.ingress-tls,
     kubectl_manifest.secret-provider-class,
   ]
 }

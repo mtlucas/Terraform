@@ -1,7 +1,7 @@
 # Variables - Some are Constants and should not be changed
 
 variable "cluster_name" {
-  description = "Name of AKS Cluster"
+  description = "Name of AKS Cluster - used to create names of other resources and DNS records"
   type        = string
 }
 
@@ -28,41 +28,41 @@ variable "kubernetes_version" {
 }
 
 variable resource_group_name {
-  description = "Resource group name"
+  description = "Existing Resource group name to create AKS cluster and other resources"
   type        = string
 }
 
 
 variable "resource_group_location" {
-  description = "Location of the resource group."
+  description = "Location of the resource group"
   type        = string
   default     = "centralus"
 }
 
 variable "resource_group_name_prefix" {
-  description = "Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription."
+  description = "Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription"
   type        = string
   default     = "rg-"
 }
 
 variable "vnet_name" {
-  description = "Existing Vnet name."
+  description = "Existing Vnet name"
   type        = string
 }
 
 variable "private_subnet_name" {
-  description = "Existing private subnet name."
+  description = "Existing private subnet name"
   type        = string
 }
 
 # This subnet should not have Routing table attached for the ACI - problem with On-premise networks without VPN Gateway
 variable "private_subnet_name_for_aci" {
-  description = "Existing private subnet name."
+  description = "Existing private subnet name"
   type        = string
 }
 
 variable "node_count" {
-  description = "Number of worker nodes to start with."
+  description = "Number of worker nodes to start with"
   type        = number
   default     = 2
 }
@@ -89,8 +89,28 @@ variable keyvault_name {
   type        = string
 }
 
+variable dns_zone_name {
+  description = "Windows DNS zone name to create cluster name A record"
+  type        = string
+}
+
+variable dns_username {
+  description = "Windows AD service account that can update DNS"
+  type        = string
+}
+
+variable dns_password {
+  description = "Windows AD service account password in base64 encoding"
+  type        = string
+}
+
 variable cert_name {
-  description = "Certificate name for ingress load balancer"
+  description = "Certificate name in Azure Key Vault, used by ingress load balancer"
+  type        = string
+}
+
+variable ca_cert_name {
+  description = "CA Certificate name in Azure Key Vault (imported as secret)"
   type        = string
 }
 
@@ -141,9 +161,15 @@ variable "nginx_ingress_version" {
 }
 
 variable "nginx_ingress_secret_name" {
-  description = "Nginx-ingress class name - used for Keyvault access"
+  description = "Nginx-ingress secret name - used for Keyvault access"
   type        = string
   default     = "ingress-tls-csi"
+}
+
+variable "nginx_ingress_secret_class" {
+  description = "Nginx-ingress secret provider class name - used for Keyvault access"
+  type        = string
+  default     = "azure-ingress-tls"
 }
 
 variable "nginx_ingress_namespace" {

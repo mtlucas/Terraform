@@ -1,7 +1,7 @@
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
 metadata:
-  name: azure-ingress-tls
+  name: ${nginx_ingress_secret_class}
   namespace: ${nginx_ingress_namespace}
 spec:
   provider: azure

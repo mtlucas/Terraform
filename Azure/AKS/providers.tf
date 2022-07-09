@@ -40,3 +40,15 @@ provider "helm" {
     client_key             = base64decode(azurerm_kubernetes_cluster.k8s.kube_config[0].client_key)
   }
 }
+
+# Configure the Windows DNS Provider
+provider "dns" {
+  update {
+    server     = "dc-1.lucasnet.int"
+    gssapi {
+      realm    = upper(var.dns_zone_name)
+      username = var.dns_username
+      password = base64decode(var.dns_password)
+    }
+  }
+}

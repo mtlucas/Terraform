@@ -19,6 +19,7 @@ resource "kubernetes_cluster_role" "all_can_list_namespaces" {
 
   depends_on = [
     azurerm_user_assigned_identity.aks_identity,
+    azurerm_role_assignment.aks-aci-vnet-assignment,
     azurerm_role_assignment.private-dns-contributor,
     azurerm_role_assignment.network-contributor,
     azurerm_role_assignment.acr-image-puller,
