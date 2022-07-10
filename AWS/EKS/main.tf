@@ -35,6 +35,8 @@
 # OR execute this:
 #   terraform destroy
 
+# Execute terraform syntax:  'terraform apply -var dns_admin_password="<password>" -auto-approve'
+
 terraform {
 
     required_version = "> 1.2"

@@ -181,13 +181,23 @@ variable "rancher_replicas" {
   default     = 1
 }
 
-variable "rancher_api_url" {
-  description = "Api URL for Rancher - add DNS entry manually"
-  type        = string
-}
-
 variable "whoami_create" {
   description = "(Optional) Install whoami deployment, default true"
   type        = bool
   default     = true
+}
+
+variable dns_zone_name {
+  description = "Windows DNS zone name to create cluster name A record"
+  type        = string
+}
+
+variable dns_admin_username {
+  description = "Windows AD service account that can update DNS"
+  type        = string
+}
+
+variable dns_admin_password {
+  description = "Windows AD service account password"
+  type        = string
 }

@@ -100,7 +100,7 @@ variable dns_admin_username {
 }
 
 variable dns_admin_password {
-  description = "Windows AD service account password in base64 encoding"
+  description = "Windows AD service account password"
   type        = string
 }
 

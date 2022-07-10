@@ -30,8 +30,20 @@ provider "helm" {
   }
 }
 
+# Configure the Windows DNS Provider
+provider "dns" {
+  update {
+    server     = "dc-1.lucasnet.int"
+    gssapi {
+      realm    = upper(var.dns_zone_name)
+      username = var.dns_admin_username
+      password = var.dns_admin_password
+    }
+  }
+}
+
 # This provider is not used, and is for potential future
 provider "rancher2" {
-  api_url   = "https://${var.rancher_api_url}"
+  api_url   = "https://${var.name}.${var.dns_zone_name}"
   insecure  = true
 }

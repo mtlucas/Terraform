@@ -97,10 +97,13 @@ resource "kubernetes_ingress_v1" "whoami" {
     name      = "whoami-ingress"
     namespace = "default"
     annotations = {
-      "kubernetes.io/ingress.class"           = "alb"
-      "alb.ingress.kubernetes.io/scheme"      = "internal"
-      "alb.ingress.kubernetes.io/target-type" = "ip"
-      "alb.ingress.kubernetes.io/subnets"     = join(", ", [for s in data.aws_subnet.private_subnets : s.id])
+      "kubernetes.io/ingress.class"               = "alb"
+      "alb.ingress.kubernetes.io/scheme"          = "internal"
+      "alb.ingress.kubernetes.io/target-type"     = "ip"
+      "alb.ingress.kubernetes.io/subnets"         = join(", ", [for s in data.aws_subnet.private_subnets : s.id])
+      "alb.ingress.kubernetes.io/certificate-arn" = data.aws_acm_certificate.issued.arn
+      "alb.ingress.kubernetes.io/ssl-policy"      = "ELBSecurityPolicy-TLS-1-2-2017-01"
+      "alb.ingress.kubernetes.io/ssl-redirect"    = "443"
     }
     labels = {
         app                            = "whoami"
@@ -111,6 +114,9 @@ resource "kubernetes_ingress_v1" "whoami" {
   }
 
   spec {
+    tls {
+      hosts = ["${aws_eks_cluster.main.name}.${var.dns_zone_name}"]
+    }
     rule {
       http {
         path {
