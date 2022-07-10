@@ -118,6 +118,7 @@ resource "kubernetes_ingress_v1" "whoami" {
       hosts = ["${aws_eks_cluster.main.name}.${var.dns_zone_name}"]
     }
     rule {
+      host = "${aws_eks_cluster.main.name}.${var.dns_zone_name}"
       http {
         path {
           path = "/*"
