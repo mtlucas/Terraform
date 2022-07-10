@@ -2,7 +2,7 @@ terraform {
  required_providers {
    kubernetes = {
      source = "hashicorp/kubernetes"
-     version = "2.11.0"
+     version = "2.12.0"
    }
  }
 }
@@ -13,7 +13,3 @@ provider "kubernetes" {
   insecure       = true
 }
 
-resource "kubernetes_namespace" "default" {
-
-
-}

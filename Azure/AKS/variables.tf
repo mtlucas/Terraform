@@ -94,12 +94,12 @@ variable dns_zone_name {
   type        = string
 }
 
-variable dns_username {
+variable dns_admin_username {
   description = "Windows AD service account that can update DNS"
   type        = string
 }
 
-variable dns_password {
+variable dns_admin_password {
   description = "Windows AD service account password in base64 encoding"
   type        = string
 }
@@ -178,9 +178,10 @@ variable "nginx_ingress_namespace" {
   default     = "ingress-basic"
 }
 
-variable "nginx_ingress_lb_ip" {
-  description = "Nginx-ingress Load Balancer IP address - static"
+variable "nginx_ingress_lb_static_ip" {
+  description = "Nginx-ingress Load Balancer static IP address - leave empty string for Dynamic IP address"
   type        = string
+  default     = ""
 }
 
 # CAUTION: Do not install if on Public network with Internet access!

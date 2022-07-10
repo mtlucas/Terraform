@@ -34,21 +34,21 @@ resource "helm_release" "ingress" {
     name  = "controller.replicaCount"
     value = 1
   }
-  # Attempting to see if Dynamic IP address works for load balancer - Yes!
-#   set {
-#     name  = "controller.service.loadBalancerIP"
-#     value = var.nginx_ingress_lb_ip
-#   }
+  # If you need a static IP for load balancer, set the "nginx_ingress_lb_static_ip" variable to valid value
+  set {
+    name  = "controller.service.loadBalancerIP"
+    value = var.nginx_ingress_lb_static_ip
+  }
   set {
     name  = "controller.ingressClassResource.default"
     value = true
   }
-  # This sync feature does not appear to be working properly, even when enabled
+  # This sync feature does not appear to be working properly, even when enabled.
   set {
     name  = "syncSecret.enabled"
     value = false
   }
-  # So I added "k8s-cert-secret.tf" code to import cert/key directly from Azure KeyVault and put into this secret
+  # Manually added secret via "kubernetes_secret_v1.ingress-tls" resource
   set {
     name  = "controller.defaultTLS.secret"
     value = "${var.nginx_ingress_namespace}/${var.nginx_ingress_secret_name}"

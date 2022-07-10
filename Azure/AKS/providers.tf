@@ -47,8 +47,8 @@ provider "dns" {
     server     = "dc-1.lucasnet.int"
     gssapi {
       realm    = upper(var.dns_zone_name)
-      username = var.dns_username
-      password = base64decode(var.dns_password)
+      username = var.dns_admin_username
+      password = var.dns_admin_password
     }
   }
 }

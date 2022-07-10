@@ -2,6 +2,26 @@
 # Developed by: Michael Lucas (mike@lucasnet.org)        #
 ##########################################################
 
+##########################################################
+# Main.tf for AKS private (internal) cluster buildout    #
+#                                                        #
+# This will deploy a AKS cluster with ACI enabled and    #
+# Basic Loadbalancer. Option to install k8s Dashboard.   #
+# Also included:                                         #
+#  - ACR Container registry                              #
+#  - Private DNS zone and link to AKS                    #
+#  - Kubernetes roles to allow listing all namespaces    #
+#  - Azure Log Analytics                                 #
+#  - CSI driver allowing integration with Azure KeyVault #
+#  Requirements to execute:                              #
+#  - Logged into Azure with correct tenant               #
+#  - Kubernetes version 1.22 or greater                  #
+#  - Execute terraform on Windows machine only           #
+#  - Access to Windows DNS server and service account    #
+##########################################################
+
+# Execute terraform syntax:  'terraform apply -var dns_admin_password="<password>" -auto-approve'
+
 terraform {
   required_providers {
     azurerm = {
