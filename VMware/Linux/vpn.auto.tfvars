@@ -1,0 +1,24 @@
+vm_name                                 = "VPN-TEST"
+vm_domain                               = "lucasnet.int"
+vm_count                                = 1  # This will add a dash ("-") and count to machine name
+vm_cpus                                 = 2  # Total number of vCPUs, use even number
+vm_cores                                = 2  # Number of Cores per socket
+vm_memory                               = 2  # In Gigabytes
+vm_template_current                     = "LINUX_BASE"
+vm_template_previous                    = "LINUX_BASE_old"
+org_name                                = "Lucasnet"
+
+#root_pass                               = "CHANGE_ME"  # Automation should include this var
+vsphere_user                            = "vsphere_sa@lucasnet.int"
+#vsphere_password                        = "CHANGE_ME"  # Automation should include this var
+vsphere_server                          = "vcenter-1.lucasnet.int"
+vsphere_datacenter                      = "HomeLab"
+vsphere_datastore                       = "datastore-2-1"
+vsphere_compute_cluster_name            = "ClusterOne"
+vsphere_host                            = "esxi-2.lucasnet.int"
+vsphere_network                         = "VM Network"
+vsphere_virtual_machine_dns_server_list = ["192.168.0.50", "192.168.0.51"]  # Not needed for DHCP
+vsphere_virtual_machine_ipv4_gateway    = "192.168.0.1"
+vsphere_virtual_machine_folder          = "Discovered virtual machine"
+vsphere_virtual_domain_admin_user       = "join_ad_sa"
+vsphere_virtual_domain_admin_password   = "CHANGE_ME"
