@@ -1,4 +1,4 @@
-# Backend state storage - if required
+# Backend state storage to AWS s3 bucket - if required
 
 #   backend "s3" {
 #     key      = "terraform.tfstate"

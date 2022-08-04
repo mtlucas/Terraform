@@ -21,7 +21,7 @@
 
 # References:
 #   https://github.com/rancher/elemental
-#   https://github.com/rancher/os2  (depracated)
+#   https://github.com/rancher/os2  (deprecated)
 
 # Execute terraform syntax:  'terraform apply -var dns_admin_password="<password>" -auto-approve'
 
@@ -58,8 +58,48 @@ resource "vsphere_virtual_machine" "cluster_node" {
 
   clone {
     template_uuid      = data.vsphere_virtual_machine.template_current.id
-    # *** Linux Customizations do not work without Perl or Cloud-init installed ***
-    # Nodes will use DHCP for IP address assignment, and later a DNS record will be created
+    # *** vSphere Linux Customizations do not work without Perl or Cloud-init installed ***
+    # RancherOS2 cloud-init only reads on inital install, and will not work for templates/clones
+    # customize {
+    #   linux_options {
+    #     host_name      = lower("${var.vm_base_name}-${count.index + 1}")
+    #     domain         = var.vm_domain
+    #   }
+    #   network_interface {
+    #     ipv4_address   = "${cidrhost("${var.vm_subnet}/${var.vm_subnet_cidr}", (count.index + var.vm_static_ip_start_addr))}"
+    #     ipv4_netmask   = var.vm_subnet_cidr
+    #   }
+    #   dns_server_list  = var.vsphere_virtual_machine_dns_server_list
+    #   dns_suffix_list  = [var.vm_domain]
+    #   ipv4_gateway     = var.vsphere_virtual_machine_ipv4_gateway
+    # }
+  }
+
+  # Setting guestinfo for Cloud-init metadata and userdata - RancherOS2 does not fully support this yet :(
+  # The following is for Static IP assignment -- We will default to using DHCP and ignore this for now
+  extra_config = {
+    "guestinfo.metadata" = base64gzip(templatefile("${path.module}/templates/metadata.tpl",
+      {
+        hostname    = lower("${var.vm_base_name}-${count.index + 1}")
+        ip_address  = "${cidrhost("${var.vm_subnet}/${var.vm_subnet_cidr}", (count.index + var.vm_static_ip_start_addr))}/${var.vm_subnet_cidr}"
+        gateway     = var.vsphere_virtual_machine_ipv4_gateway
+        nameservers = var.vsphere_virtual_machine_dns_server_list
+        domain      = var.vm_domain
+      }
+    ))
+    "guestinfo.metadata.encoding" = "gzip+base64"
+    "guestinfo.userdata" = base64gzip(templatefile("${path.module}/templates/userdata.tpl", 
+      {
+        hostname    = lower("${var.vm_base_name}-${count.index + 1}")
+        username    = var.vm_username
+        password    = bcrypt(var.vm_root_pass)  # User password same as root
+        ip_address  = "${cidrhost("${var.vm_subnet}/${var.vm_subnet_cidr}", (count.index + var.vm_static_ip_start_addr))}/${var.vm_subnet_cidr}"
+        gateway     = var.vsphere_virtual_machine_ipv4_gateway
+        nameservers = var.vsphere_virtual_machine_dns_server_list
+        domain      = var.vm_domain
+      }
+    ))
+    "guestinfo.userdata.encoding" = "gzip+base64"
   }
 
   tags = [        
@@ -78,15 +118,13 @@ resource "vsphere_virtual_machine" "cluster_node" {
   # FUTURE NFS mount:  "mount -t nfs truenas-1.lucasnet.int:/mnt/pool-1/nfs /usr/local/mnt"
   provisioner "remote-exec" {
     inline = [
-      # Configure cluster node with Hostname, .bashrc, linked dir, and rke2 config file
+      # Configure cluster node with hostname, .bashrc, motd, and rke2 config file
+      "printf '#!/bin/bash\nalias l=\"ls -la\"\n' > /root/.bashrc",
+      "echo 'H4sIAAAAAAAAA3VQuw7DMAjc/RVsaaWG/Eg/AdXZoi7x0vE+vuZhk6FFlnUccJx4tuN4nwe1kz6NmQvVSh4Oxq8R9GjIQmU2toNJEdcMLiCCTeDyNhqUQZmyUSBAWWtGbAMu6/FTt3+PtcdiQq8U1s6bVnZFMpph5vfOa2L1f7qY/rYqKSzDfa8z7ekXc7FZ1R0rO1iiy7ktDmc6rNQ9DOusUFqN+7tk3BckDuyMAT2zXGh0GoWYAKVA0KWUL6jAVQoUAgAA' | base64 -d | gunzip > /etc/motd",
       "hostnamectl set-hostname ${self.name}.${var.vm_domain}",
-      "printf '#!/bin/bash\nalias l=\"ls -la\"\nexport KUBECONFIG=/etc/rancher/rke2/rke2.yaml\n' > ~/.bashrc",
-      # Make and Link /opt dirs to /usr/local/opt to support auto ROS2 partitioning scheme in order not to comsume root partition disk space
-      "mkdir -p /usr/local/opt/cni /usr/local/opt/rke2 /usr/local/opt/rancher-system-agent",
-      "ln -s /usr/local/opt/cni /opt && ln -s /usr/local/opt/rke2 /opt && ln -s /usr/local/opt/rancher-system-agent /opt",
-      # Create and configure RKE2 /etc/rancher/rke2/config.yaml file - Always use first node name for additional nodes
+      # Create and configure RKE2 /etc/rancher/rke2/config.yaml file - Always use cluster name in case load balancer is added
       count.index > 0 ?  # If additional node, add "server" metadata to config file
-        "printf 'server: https://${var.vm_base_name}-1.${var.vm_domain}:9345\ntoken: ${random_uuid.rke2_token.result}\nwrite-kubeconfig-mode: \"0644\"\ntls-san:\n  - \"${local.rke2_cluster_fqdn}\"\n  - \"${self.name}.${var.vm_domain}\"\nnode-label:\n  - \"nodetype=master\"\ncluster-domain: \"${local.rke2_cluster_fqdn}\"\n' > /etc/rancher/rke2/config.yaml" :
+        "printf 'server: https://${var.vm_base_name}.${var.vm_domain}:9345\ntoken: ${random_uuid.rke2_token.result}\nwrite-kubeconfig-mode: \"0644\"\ntls-san:\n  - \"${local.rke2_cluster_fqdn}\"\n  - \"${self.name}.${var.vm_domain}\"\nnode-label:\n  - \"nodetype=master\"\ncluster-domain: \"${local.rke2_cluster_fqdn}\"\n' > /etc/rancher/rke2/config.yaml" :
         "printf 'token: ${random_uuid.rke2_token.result}\nwrite-kubeconfig-mode: \"0644\"\ntls-san:\n  - \"${local.rke2_cluster_fqdn}\"\n  - \"${self.name}.${var.vm_domain}\"\nnode-label:\n  - \"nodetype=master\"\ncluster-domain: \"${local.rke2_cluster_fqdn}\"\n' > /etc/rancher/rke2/config.yaml",
     ]
   }
@@ -96,6 +134,7 @@ resource "vsphere_virtual_machine" "cluster_node" {
       tags,
       num_cpus,
       memory,
+      extra_config,
     ]
   }
 }

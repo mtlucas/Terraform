@@ -2,6 +2,7 @@
 
 # Install cert-manager helm chart
 resource "helm_release" "cert_manager" {
+  count = var.rancher_create ? 1 : 0
 
   name             = "cert-manager"
   chart            = "cert-manager"
@@ -24,6 +25,7 @@ resource "helm_release" "cert_manager" {
 
 # Install Rancher helm chart
 resource "helm_release" "rancher_server" {
+  count = var.rancher_create ? 1 : 0
 
   name             = "rancher"
   chart            = "rancher"

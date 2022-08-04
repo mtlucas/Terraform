@@ -8,6 +8,10 @@ variable "vm_domain" {
     type    = string
 }
 
+variable "vm_username" {
+    type    = string
+}
+
 variable "vm_count" {
     type    = number
 }
@@ -21,6 +25,18 @@ variable "vm_cores" {
 }
 
 variable "vm_memory" {
+    type    = number
+}
+
+variable "vm_subnet" {
+    type    = string
+}
+
+variable "vm_subnet_cidr" {
+    type    = number
+}
+
+variable "vm_static_ip_start_addr" {
     type    = number
 }
 
@@ -131,6 +147,12 @@ variable "cert_manager_version" {
   description = "Version of cert-manager to install alongside Rancher (format: 0.0.0)"
   type        = string
   default     = "1.7.3"
+}
+
+variable "rancher_create" {
+  description = "Install Rancher or not - true or false"
+  type        = bool
+  default     = true
 }
 
 variable "rancher_version" {
