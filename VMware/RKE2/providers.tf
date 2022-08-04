@@ -22,6 +22,9 @@ terraform {
       source  = "rancher/rancher2"
       version = "1.24.0"
     }
+    windns = {
+      source  = "portofportland/windns"
+    }
     ssh = {
       source  = "loafoe/ssh"
       version = "1.2.0"
@@ -40,18 +43,20 @@ provider "vsphere" {
     allow_unverified_ssl = true
 }
 
-# Configure the Windows DNS Provider
-provider "dns" {
-  update {
-    server     = var.dns_server
-    timeout    = 2
-    retries    = 3
-    gssapi {
-      realm    = upper(var.vm_domain)
-      username = var.dns_admin_username
-      password = var.dns_admin_password
-    }
-  }
+# *** Configure the Windows DNS Provider using WinRM ***
+# In order to use this provider, you need the following enabled:
+# - WinRM HTTPS on the DNS server:
+#     "winrm quickconfig -transport:https"
+#     "winrm get winrm/config"
+# - Firewall Rule allowing port 5986 on DNS server:
+#     "$FirewallParam = @{ DisplayName = 'Windows Remote Management (HTTPS-In)'; Direction = 'Inbound'; LocalPort = 5986; Protocol = 'TCP'; Action = 'Allow'; Program = 'System' }; New-NetFirewallRule @FirewallParam"
+# - WinRM TrustedHosts enabled on client where running terraform:
+#     "Set-Item WSMan:localhost\client\trustedhosts -value *"
+provider "windns" {
+  server   = var.dns_server
+  username = var.dns_admin_username
+  password = var.dns_admin_password
+  usessl   = true
 }
 
 provider "remote" {

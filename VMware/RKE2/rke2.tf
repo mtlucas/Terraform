@@ -24,7 +24,7 @@ resource "null_resource" "install_rke2_initial_node" {
   }
 
   depends_on = [
-    dns_a_record_set.rke2_node_dns_records,
+    windns.rke2_node_dns_records,
   ]
 }
 
@@ -54,7 +54,7 @@ resource "null_resource" "install_rke2_additional_node" {
   # Need DNS record for initial cluster node before attempting install on additional nodes
   depends_on = [
     null_resource.install_rke2_initial_node,
-    dns_a_record_set.rke2_node_dns_records,
+    windns.rke2_node_dns_records,
   ]
 }
 

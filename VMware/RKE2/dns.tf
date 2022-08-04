@@ -1,20 +1,20 @@
 # Get IP address and create DNS record - based on VM creation
 
-resource "dns_a_record_set" "rke2_node_dns_records" {
+resource "windns" "rke2_node_dns_records" {
 
   for_each  = { for item in vsphere_virtual_machine.cluster_node: item.name => item }
 
-  zone      = lower("${var.vm_domain}.")
-  name      = each.key
-  addresses = [each.value["default_ip_address"]]
-  ttl       = 300
+  zone_name     = lower("${var.vm_domain}.")
+  record_name   = each.key
+  ipv4address   = each.value["default_ip_address"]
+  record_type   = "A"
 }
 
 # Add cluster DNS entry if not using load balancer
-resource "dns_cname_record" "rke2_cluster_cname_record" {
+resource "windns" "rke2_cluster_cname_record" {
 
-  zone      = lower("${var.vm_domain}.")
-  name      = var.vm_base_name
-  cname     = "${var.vm_base_name}-1.${var.vm_domain}."  # Use first node for CNAME record
-  ttl       = 300
+  zone_name     = lower("${var.vm_domain}.")
+  record_name   = var.vm_base_name
+  hostnamealias = "${var.vm_base_name}-1.${var.vm_domain}."  # Use first node for CNAME record
+  record_type   = "CNAME"
 }
