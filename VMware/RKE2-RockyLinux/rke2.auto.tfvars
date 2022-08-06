@@ -3,7 +3,7 @@
 #   ex. --> set TF_VAR_vm_root_pass=<PASSWORD>
 
 # RKE2 cluster_name == vm_base_name + "." + vm_domain
-vm_base_name                            = "ros"  # Use lowercase machine names, names will tack on a dash and incremental number
+vm_base_name                            = "rke"  # Use lowercase machine names, names will tack on a dash and incremental number
 vm_domain                               = "lucasnet.int"
 vm_username                             = "devops"  # Username to add to VMs using root passwd, not working
 vm_count                                = 3  # This will add a dash ("-") and incremental counter to machine name
@@ -15,7 +15,7 @@ vm_subnet_cidr                          = 24  # Subnet Mask (cidr number)
 # Static IP configuration is not working yet due to limited Cloud-init functionaily in ROS2 (Elemental)
 vm_static_ip_start_addr                 = 60  # Last octet static ip start number that increments by one, ex. 192.168.0.60
 #vm_root_pass                            = "CHANGE_ME"  # Automation should include this var
-vm_template_current                     = "ROS_BASE"
+vm_template_current                     = "LINUX_BASE"
 org_name                                = "Lucasnet"
 vsphere_user                            = "vsphere_sa@lucasnet.int"
 #vsphere_password                        = "CHANGE_ME"  # Automation should include this var

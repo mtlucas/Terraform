@@ -17,7 +17,7 @@ terraform {
   backend "s3" {
     key      = "terraform.tfstate"
     bucket   = "terraform"
-    endpoint = "https://dev-k8s-m1.dev.rph.int/s3/"
+    endpoint = "https://s3.amazonaws.com/"
     
     access_key="AKIAIOSFODNN7EXAMPLE"
     secret_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"

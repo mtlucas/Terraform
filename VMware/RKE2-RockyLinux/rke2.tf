@@ -19,7 +19,7 @@ resource "null_resource" "install_rke2_initial_node" {
     # Bootstrap RKE2 install script for initial server node - Assumes config file already exists
     inline = concat(
       local.rke2_install_script,
-      ["kubectl wait node/${vsphere_virtual_machine.cluster_node[0].name} --for=condition=ready --timeout=120s"]
+      ["kubectl wait node/${vsphere_virtual_machine.cluster_node[0].name}.${var.vm_domain} --for=condition=ready --timeout=120s"]
     )
   }
 
@@ -47,7 +47,7 @@ resource "null_resource" "install_rke2_additional_node" {
     # Bootstrap RKE2 install script for additional server nodes - Assumes config file already exists
     inline = concat(
       local.rke2_install_script,
-      ["kubectl wait node/${vsphere_virtual_machine.cluster_node[count.index + 1].name} --for=condition=ready --timeout=120s"]
+      ["kubectl wait node/${vsphere_virtual_machine.cluster_node[count.index + 1].name}.${var.vm_domain} --for=condition=ready --timeout=120s"]
     )
   }
 

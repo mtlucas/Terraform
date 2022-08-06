@@ -80,7 +80,7 @@ resource "vsphere_virtual_machine" "cluster_node" {
   extra_config = {
     "guestinfo.metadata" = base64gzip(templatefile("${path.module}/templates/metadata.tpl",
       {
-        hostname    = lower("${var.vm_base_name}-${count.index + 1}")
+        hostname    = lower("${var.vm_base_name}-${count.index + 1}.${var.vm_domain}")
         ip_address  = "${cidrhost("${var.vm_subnet}/${var.vm_subnet_cidr}", (count.index + var.vm_static_ip_start_addr))}/${var.vm_subnet_cidr}"
         gateway     = var.vsphere_virtual_machine_ipv4_gateway
         nameservers = var.vsphere_virtual_machine_dns_server_list
@@ -90,7 +90,7 @@ resource "vsphere_virtual_machine" "cluster_node" {
     "guestinfo.metadata.encoding" = "gzip+base64"
     "guestinfo.userdata" = base64gzip(templatefile("${path.module}/templates/userdata.tpl", 
       {
-        hostname    = lower("${var.vm_base_name}-${count.index + 1}")
+        hostname    = lower("${var.vm_base_name}-${count.index + 1}.${var.vm_domain}")
         username    = var.vm_username
         password    = bcrypt(var.vm_root_pass)  # User password same as root
         ip_address  = "${cidrhost("${var.vm_subnet}/${var.vm_subnet_cidr}", (count.index + var.vm_static_ip_start_addr))}/${var.vm_subnet_cidr}"
@@ -120,13 +120,12 @@ resource "vsphere_virtual_machine" "cluster_node" {
     inline = [
       # Configure cluster node with hostname, .bashrc, and motd
       "printf '#!/bin/bash\nalias l=\"ls -la\"\n' > /root/.bashrc",
-      "sed -i 's/localhost/${self.name}/g' /oem/99_custom.yaml",  # Update default hostname Cloud-init data from Template
       "echo 'H4sIAAAAAAAAA3VQuw7DMAjc/RVsaaWG/Eg/AdXZoi7x0vE+vuZhk6FFlnUccJx4tuN4nwe1kz6NmQvVSh4Oxq8R9GjIQmU2toNJEdcMLiCCTeDyNhqUQZmyUSBAWWtGbAMu6/FTt3+PtcdiQq8U1s6bVnZFMpph5vfOa2L1f7qY/rYqKSzDfa8z7ekXc7FZ1R0rO1iiy7ktDmc6rNQ9DOusUFqN+7tk3BckDuyMAT2zXGh0GoWYAKVA0KWUL6jAVQoUAgAA' | base64 -d | gunzip > /etc/motd",
-      "hostnamectl set-hostname ${self.name}",
+      "hostnamectl set-hostname ${self.name}.${var.vm_domain}",
       # Create and configure RKE2 /etc/rancher/rke2/config.yaml file - Always use cluster name in case load balancer is added
       count.index > 0 ?  # If additional node, add "server" metadata to config file
-        "printf 'server: https://${local.rke2_cluster_fqdn}:9345\ntoken: ${random_uuid.rke2_token.result}\nwrite-kubeconfig-mode: \"0644\"\ntls-san:\n  - \"${local.rke2_cluster_fqdn}\"\n  - \"${self.name}.${lower(var.vm_domain)}\"\nnode-label:\n  - \"nodetype=master\"\ncluster-domain: \"${local.rke2_cluster_fqdn}\"\n' > /etc/rancher/rke2/config.yaml" :
-        "printf 'token: ${random_uuid.rke2_token.result}\nwrite-kubeconfig-mode: \"0644\"\ntls-san:\n  - \"${local.rke2_cluster_fqdn}\"\n  - \"${self.name}.${var.vm_domain}\"\nnode-label:\n  - \"nodetype=master\"\ncluster-domain: \"${local.rke2_cluster_fqdn}\"\n' > /etc/rancher/rke2/config.yaml",
+        "printf 'server: https://${local.rke2_cluster_fqdn}:9345\ntoken: ${random_uuid.rke2_token.result}\nwrite-kubeconfig-mode: \"0644\"\ntls-san:\n  - \"${local.rke2_cluster_fqdn}\"\n  - \"${self.name}.${lower(var.vm_domain)}\"\n  - \"${self.name}\"\nnode-label:\n  - \"nodetype=master\"\ncluster-domain: \"${local.rke2_cluster_fqdn}\"\n' > /etc/rancher/rke2/config.yaml" :
+        "printf 'token: ${random_uuid.rke2_token.result}\nwrite-kubeconfig-mode: \"0644\"\ntls-san:\n  - \"${local.rke2_cluster_fqdn}\"\n  - \"${self.name}.${var.vm_domain}\"\n  - \"${self.name}\"\nnode-label:\n  - \"nodetype=master\"\ncluster-domain: \"${local.rke2_cluster_fqdn}\"\n' > /etc/rancher/rke2/config.yaml",
     ]
   }
 

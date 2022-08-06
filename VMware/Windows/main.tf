@@ -1,38 +1,15 @@
-# Main.tf
+##########################################################
+# Developed by: Michael Lucas (mike@lucasnet.org)        #
+##########################################################
 
-terraform {
+##########################################################
+# Main.tf for Windows Server 2022 build-out              #
+#                                                        #
+# This will deploy a minimal Windows Server 2022 server  #
+# Data Center edition from vSphere template (sysprep'd). #
+# It has IIS installed and basic tooling.                #
+##########################################################
 
-  required_version = ">= 0.14"
-
-  required_providers {
-    vsphere   = {
-      source  = "hashicorp/vsphere"
-    }
-    random    = {
-      source  = "hashicorp/random"
-      version = "3.1.3"
-    }
-  }
-
-#   backend "s3" {
-#     key      = "terraform.tfstate"
-#     bucket   = "terraform"
-#     endpoint = "https://dev-k8s-m1.dev.rph.int/s3/"
-    
-#     access_key="AKIAIOSFODNN7EXAMPLE"
-#     secret_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-
-#     region = "main"
-#     encrypt = false
-#     force_path_style = true
-#     skip_region_validation = true
-#     skip_metadata_api_check = true
-#     skip_credentials_validation = true
-#   }
-  # Optional attributes and the defaults function are
-  # both experimental, so we must opt in to the experiment.
-  #experiments = [module_variable_optional_attrs]
-}
 
 resource "vsphere_virtual_machine" "cloned_virtual_machine" {
 
