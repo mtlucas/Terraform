@@ -71,8 +71,9 @@ resource "vsphere_virtual_machine" "cloned_virtual_machine" {
     inline = [
       "sleep 10",
       "hostnamectl set-hostname ${vsphere_virtual_machine.cloned_virtual_machine[count.index].name}.${var.vm_domain}",
+      "echo 'H4sIAAAAAAAAA3VQuw7DMAjc/RVsaaWG/Eg/AdXZoi7x0vE+vuZhk6FFlnUccJx4tuN4nwe1kz6NmQvVSh4Oxq8R9GjIQmU2toNJEdcMLiCCTeDyNhqUQZmyUSBAWWtGbAMu6/FTt3+PtcdiQq8U1s6bVnZFMpph5vfOa2L1f7qY/rYqKSzDfa8z7ekXc7FZ1R0rO1iiy7ktDmc6rNQ9DOusUFqN+7tk3BckDuyMAT2zXGh0GoWYAKVA0KWUL6jAVQoUAgAA' | base64 -d | gunzip > /etc/motd",
       "nmcli con mod ens192 ipv4.dhcp-hostname ${vsphere_virtual_machine.cloned_virtual_machine[count.index].name}.${var.vm_domain}",
-      "update-crypto-policies --set DEFAULT:AD-SUPPORT",
+      "update-crypto-policies --set LEGACY",
       "yum install samba-common-tools realmd oddjob oddjob-mkhomedir sssd adcli krb5-workstation authselect-compat -y",
       "echo '${var.vsphere_virtual_domain_admin_password}' | realm join ${var.vm_domain} -U ${var.vsphere_virtual_domain_admin_user}",
       "authconfig --enablesssd --enablesssdauth --enablemkhomedir --update",
