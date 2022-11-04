@@ -1,6 +1,6 @@
-##########################################################
-# Developed by: Michael Lucas (mike@lucasnet.org)        #
-##########################################################
+##############################################################
+# Developed by: Michael Lucas (mike.lucas@wolterskluwer.com) #
+##############################################################
 
 ##########################################################
 # Main.tf for AKS private (internal) cluster buildout    #
@@ -20,7 +20,7 @@
 #  - Access to Windows DNS server and service account    #
 ##########################################################
 
-# Execute terraform syntax:  'terraform apply -var dns_admin_password="<password>" -auto-approve'
+# Execute terraform syntax:  'terraform apply -auto-approve'
 
 terraform {
   required_providers {
@@ -48,17 +48,21 @@ terraform {
 # Main private AKS Cluster build-out                     #
 ##########################################################
 resource "azurerm_kubernetes_cluster" "k8s" {
-  name                    = var.cluster_name
-  location                = data.azurerm_resource_group.primary.location
-  kubernetes_version      = var.kubernetes_version
-  resource_group_name     = data.azurerm_resource_group.primary.name
-  dns_prefix              = var.cluster_name
-  private_cluster_enabled = true
-  node_resource_group     = "${data.azurerm_resource_group.primary.name}-${var.cluster_name}-nodepool"
-
+  name                                = var.cluster_name
+  location                            = data.azurerm_resource_group.primary.location
+  kubernetes_version                  = var.kubernetes_version
+  resource_group_name                 = data.azurerm_resource_group.primary.name
+  dns_prefix                          = var.cluster_name
+  private_cluster_enabled             = true
+  private_cluster_public_fqdn_enabled = false
+  private_dns_zone_id                 = azurerm_private_dns_zone.k8s.id
+  public_network_access_enabled       = false
+  node_resource_group                 = "${data.azurerm_resource_group.primary.name}-nodepool"
+  azure_policy_enabled                = true
+  
   # Can only restrict IP ranges on Public cluster
   #api_server_authorized_ip_ranges = ["10.10.0.0/16", "192.168.0.0/24"]
-
+  
   linux_profile {
     admin_username = "ubuntu"
 
@@ -75,11 +79,8 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   }
 
   identity {
-    type                       = var.cluster_identity_type
-  }
-
-  aci_connector_linux {
-    subnet_name = data.azurerm_subnet.private_for_aci.name
+    type            = "UserAssigned"
+    identity_ids    = [azurerm_user_assigned_identity.aks_identity.id]
   }
 
   oms_agent {
@@ -101,7 +102,7 @@ resource "azurerm_kubernetes_cluster" "k8s" {
     network_plugin     = "azure"
     docker_bridge_cidr = var.network_docker_bridge_cidr
     dns_service_ip     = var.network_dns_service_ip
-    outbound_type      = "userDefinedRouting"
+    outbound_type      = "userAssignedNATGateway"
     service_cidr       = var.network_service_cidr
   }
 
@@ -113,12 +114,14 @@ resource "azurerm_kubernetes_cluster" "k8s" {
   lifecycle {
     ignore_changes = [
       kubernetes_version,
+      microsoft_defender,
       api_server_authorized_ip_ranges,
       enable_pod_security_policy,
       local_account_disabled,
     ]
   }
   depends_on = [
-    azurerm_private_dns_zone_virtual_network_link.private_dns_vnet_link,
+    azurerm_private_dns_zone_virtual_network_link.private_dns_vnet_link_primary,
+    azurerm_private_dns_zone_virtual_network_link.private_dns_vnet_link_peer,
   ]
 }

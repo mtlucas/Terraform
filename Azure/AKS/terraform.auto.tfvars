@@ -2,7 +2,7 @@
 
 cluster_name                        = "aks-1"
 environment                         = "Development"
-kubernetes_version                  = "1.22"
+kubernetes_version                  = "1.24"
 location                            = "Central US"
 resource_group_name                 = "lucasnet"
 resource_group_location             = "centralus"
@@ -18,11 +18,11 @@ ca_cert_name                        = "ca-lucasnet-int"
 csi_driver_chart_version            = "1.2.0"
 log_analytics_workspace_name        = "lucasnet-analytics-workspace"
 private_subnet_name                 = "subnet-central-1-private"
-private_subnet_name_for_aci         = "subnet-central-2-private"      # These subnet must not have routing table
+private_subnet_name_for_aci         = "subnet-central-3-private"      # This subnet must not have routing table
 network_service_cidr                = "10.43.0.0/24"
 network_dns_service_ip              = "10.43.0.10"
 nginx_ingress_create                = true
-nginx_ingress_version               = "4.1.4"
+nginx_ingress_version               = "4.3.0"
 nginx_ingress_lb_static_ip          = ""                              # Leave empty string for Dynamic IP
 kubernetes_dashboard_create         = true
-kubernetes_dashboard_chart_version  = "5.7.0"
+kubernetes_dashboard_chart_version  = "5.11.0"

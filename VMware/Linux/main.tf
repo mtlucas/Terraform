@@ -63,22 +63,27 @@ resource "vsphere_virtual_machine" "cloned_virtual_machine" {
     type     = "ssh"
     user     = "root"
     password = var.root_pass
-    host     = vsphere_virtual_machine.cloned_virtual_machine[count.index].default_ip_address
+    host     = self.default_ip_address
   }
 
   # Do customizations:  Set hostname, add to Domain, enable kerberos auth, enable DynDNS, and upgrade all packages
   provisioner "remote-exec" {
     inline = [
       "sleep 10",
-      "hostnamectl set-hostname ${vsphere_virtual_machine.cloned_virtual_machine[count.index].name}.${var.vm_domain}",
-      "echo 'H4sIAAAAAAAAA3VQuw7DMAjc/RVsaaWG/Eg/AdXZoi7x0vE+vuZhk6FFlnUccJx4tuN4nwe1kz6NmQvVSh4Oxq8R9GjIQmU2toNJEdcMLiCCTeDyNhqUQZmyUSBAWWtGbAMu6/FTt3+PtcdiQq8U1s6bVnZFMpph5vfOa2L1f7qY/rYqKSzDfa8z7ekXc7FZ1R0rO1iiy7ktDmc6rNQ9DOusUFqN+7tk3BckDuyMAT2zXGh0GoWYAKVA0KWUL6jAVQoUAgAA' | base64 -d | gunzip > /etc/motd",
-      "nmcli con mod ens192 ipv4.dhcp-hostname ${vsphere_virtual_machine.cloned_virtual_machine[count.index].name}.${var.vm_domain}",
+      "hostnamectl set-hostname ${self.name}.${var.vm_domain}",
+      "echo 'H4sIAAAAAAAAA62Ty2rDMBBF9/mKG7xoC6H+jkIXXTSLgmBQ7YktsCUzkhNa8vEd2X1k4SxcMkLS6HGPrgQqitvEpsCVoN/mYoKW9wLXQSUMcNZCRKon0jzXtaBSxSaD5uQug+gfoHIyYiYhUZm7yRGtBJWqBQwZOhslznrN7ulh7dXWxgR6CyOsMNgnFucbOJ8CLCJXo3Cd1+w27xI8vezwHBrn8ep63mEfWbzteQa1NuKd2cOHlHW+/puKSodiU8uay5EFtu6ddzGJTUG2l4723o6pDeI+M6aqOEacXNcpCoex6z7U4pFjco39OUh4CJIH32csvJEdBgmDONWgsye97yFIxX12Zhv2leP4uPhGt/oimy+0v1wPbQMAAA==' | base64 -d | gunzip > /etc/motd",
+      "echo 'H4sIAAAAAAAAA5WTW0vDMBTH3/spjnOwDWwyqTiY+DDwceCDDz4YTC+227BpRlsG4vG729yaVafooZSTc/vlT5LzM5ruKpomzTYI1veru9vxNEtaoPtaZrSUyUty2MyCfb2r2gImbB5FT5c30UI85mUmRQ6tXLJqcqIAOAdjxnF/ZTbsCnyCEzfgWhCd70J9Egj3Rk5jEQD1QDz6KLiQdllPtQlAj0WV121ot4V4tE/8O7b7XYSdsfnVQqOePVoVT1UyHpCBuU7U6uOuQi1M5X/I2AuknHkuc/IHWAKxF4z9Dn/WqvYVEuMYebrbhKk9ME0iKjSzigdQZOC12rvwC9QeOwIzjj5I65qVXjNwlfSLTNuL4EeBZn8nzoUKBVUui7zNthCGmSxlzdNSZq8NyKJw9SMHiMTDW9PmAtbdm4HVYbN0N8ZMVBrG7+qFffSIUfAJU0/uOn8DAAA=' | base64 -d | gunzip > /etc/profile.d/lucasnet.sh",
+      "nmcli con mod ens192 ipv4.dhcp-hostname ${self.name}.${var.vm_domain}",
       "update-crypto-policies --set LEGACY",
-      "yum install samba-common-tools realmd oddjob oddjob-mkhomedir sssd adcli krb5-workstation authselect-compat -y",
+      "yum install neofetch samba-common-tools realmd oddjob oddjob-mkhomedir sssd adcli krb5-workstation authselect-compat nfs-utils iscsi-initiator-utils -y",
       "echo '${var.vsphere_virtual_domain_admin_password}' | realm join ${var.vm_domain} -U ${var.vsphere_virtual_domain_admin_user}",
       "authconfig --enablesssd --enablesssdauth --enablemkhomedir --update",
       "printf '\ndyndns_update = true\ndyndns_refresh_interval = 43200\ndyndns_update_ptr = true\ndyndns_ttl = 3600\n' >> /etc/sssd/sssd.conf",
+      "printf 'Subsystem       powershell      /usr/bin/pwsh -sshs -NoLogo\n' >> /etc/ssh/sshd_config",
       "systemctl restart sssd",
+      "systemctl disable firewalld",
+      "sed -i s/^SELINUX=.*$/SELINUX=permissive/ /etc/selinux/config",
+      "setenforce 0",
       "sudo yum upgrade -y",
     ]
   }

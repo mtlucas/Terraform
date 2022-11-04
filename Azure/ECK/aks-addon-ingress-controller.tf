@@ -1,6 +1,8 @@
 # Install Nginx ingress using helm, will create basic Load balancer in Azure (free)
 
 resource "kubernetes_namespace" "ingress-basic" {
+  count = var.nginx_ingress_create ? 1 : 0
+
   metadata {
     name        = var.nginx_ingress_namespace
     annotations = {
@@ -9,14 +11,36 @@ resource "kubernetes_namespace" "ingress-basic" {
   }
   depends_on = [
     azurerm_kubernetes_cluster.k8s,
-    azurerm_user_assigned_identity.aks_identity,
-    azurerm_role_assignment.aks-aci-vnet-assignment,
+    azurerm_user_assigned_identity.kvt_identity,
     azurerm_role_assignment.private-dns-contributor,
     azurerm_role_assignment.network-contributor,
     azurerm_role_assignment.acr-image-puller,
     azurerm_role_assignment.vm-contributor,
   ]
 }
+
+# Import Certificate/Key from Azure Key Vault and save as Kubernetes secret
+# -- It should be noted this is a workaround for the failing SecretProviderClass sync feature
+# resource "kubernetes_secret_v1" "ingress-tls" {
+#   count = var.nginx_ingress_create ? 1 : 0
+
+#   metadata {
+#     name      = var.nginx_ingress_secret_name
+#     namespace = var.nginx_ingress_namespace
+#   }
+
+#   type = "kubernetes.io/tls"
+
+#   data = {
+#     "ca.crt"  = base64decode(data.azurerm_key_vault_secret.ca_cert.value)
+#     "tls.crt" = data.azurerm_key_vault_certificate_data.wildcard_cert.pem
+#     "tls.key" = data.azurerm_key_vault_certificate_data.wildcard_cert.key
+#   }
+
+#   depends_on = [
+#     kubernetes_namespace.ingress-basic,
+#   ]
+# }
 
 resource "helm_release" "ingress" {
   count = var.nginx_ingress_create ? 1 : 0
@@ -107,12 +131,12 @@ resource "helm_release" "ingress" {
   }
 
   depends_on = [
-    kubernetes_secret_v1.ingress-tls,
+    #kubernetes_secret_v1.ingress-tls,
     kubectl_manifest.secret-provider-class,
   ]
 }
 
-# CSI driver installed via kubectl using template, since kubernetes_manifest does not work properly
+# Ingress TLS cert installed via kubectl using template, since kubernetes_manifest does not work properly
 data "template_file" "secret-provider-class" {
   template = file("${path.module}/templates/SecretProviderClass.tpl")
   vars = {
@@ -125,10 +149,10 @@ data "template_file" "secret-provider-class" {
   }
 }
 
-# This CSI driver should be created in Ingress namespace
+# This Ingress TLS cert should be created in Ingress-basic namespace
 resource "kubectl_manifest" "secret-provider-class" {
   count = var.nginx_ingress_create ? 1 : 0
-  
+
   yaml_body  = data.template_file.secret-provider-class.rendered
 
   depends_on = [

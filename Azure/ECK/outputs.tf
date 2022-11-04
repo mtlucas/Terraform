@@ -24,14 +24,6 @@ output "private_dns_zone_id" {
   value = azurerm_private_dns_zone.k8s.soa_record[0].fqdn
 }
 
-output "load_balancer_ip_address" {
-  value = data.azurerm_lb.aks_nodepool_lb.frontend_ip_configuration[0].private_ip_address
-}
-
-output "cluster_dns_name" {
-  value = "${dns_a_record_set.aks_cluster_a_record.name}.${dns_a_record_set.aks_cluster_a_record.zone}"
-}
-
 # Does not display "sensitive" value, find values in ~/.kube/<cluster_name>-config file
 # output "kube_config" {
 #     value = azurerm_kubernetes_cluster.k8s.kube_config_raw

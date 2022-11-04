@@ -41,8 +41,7 @@ resource "helm_release" "kv_csi" {
 
   depends_on = [
     azurerm_kubernetes_cluster.k8s,
-    azurerm_user_assigned_identity.aks_identity,
-    azurerm_role_assignment.aks-aci-vnet-assignment,
+    azurerm_user_assigned_identity.kvt_identity,
     azurerm_role_assignment.private-dns-contributor,
     azurerm_role_assignment.network-contributor,
     azurerm_role_assignment.acr-image-puller,
